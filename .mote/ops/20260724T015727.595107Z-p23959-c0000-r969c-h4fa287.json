@@ -1,0 +1,1 @@
+{"actor":"codex-graph4s","entity":"bd-01KY8VMMDJ8155TRVXRC188GYC","kind":"note","note_kind":"decision","op":"20260724T015727.595107Z-p23959-c0000-r969c-h4fa287","text":"Kept GraphExpr, persistent Graph, and indexed CSR as separate representations; made builders and indexing validation accumulating and traversal order explicit.","ts":"2026-07-24T01:57:27.595107Z","v":1}

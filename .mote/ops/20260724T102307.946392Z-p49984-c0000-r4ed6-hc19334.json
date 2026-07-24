@@ -1,0 +1,1 @@
+{"actor":"codex-graph4s","entity":"bd-01KY9RXSSB076TTM09JPF5YWCY","kind":"note","note_kind":"decision","op":"20260724T102307.946392Z-p49984-c0000-r4ed6-hc19334","text":"Public Edge/Arc universal equality uses ordinary endpoint semantics while Cats Hash remains authoritative for topology; documented as an explicit boundary policy","ts":"2026-07-24T10:23:07.946392Z","v":1}

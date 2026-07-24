@@ -1,0 +1,1 @@
+{"actor":"codex-graph4s","entity":"bd-01KY9TJZ47CYKZBJXWAR0F7SDD","kind":"note","note_kind":"progress","op":"20260724T102632.759834Z-p53748-c0000-rde9b-h30a5f7","text":"Made edge/arc ID arrays lazy and routed trusted algorithms directly over ordinal CSR/CSC slices; 200k/800k BFS probe improved from 834-929 ms intermediate runs to 614 ms","ts":"2026-07-24T10:26:32.759834Z","v":1}

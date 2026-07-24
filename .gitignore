@@ -1,0 +1,13 @@
+.bsp/
+.bloop/
+.idea/
+.metals/
+.scala-build/
+.vscode/
+.mote/local/
+target/
+**/target/
+.DS_Store
+
+# Local performance probes used during the pre-publication audit.
+algorithms/src/test/scala/graph4s/algorithms/ZZPerfProbe*.scala
