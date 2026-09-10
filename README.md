@@ -254,9 +254,53 @@ val restricted = active.restrict(distances)
 ```
 
 `VertexMap` and `EdgeMap` are partial maps on one graph. `VertexField` and
-`EdgeField` contain exactly one value for every vertex or edge. Weighted graph
-wrappers pair a topology with a total edge field and reject topology
-mismatches.
+`EdgeField` contain exactly one value for every vertex or edge. `ArcMap` and
+`ArcField` provide the directional equivalents. Weighted graph wrappers pair a
+topology with a total edge or arc field and reject topology mismatches.
+
+Total edge and arc fields can be aligned with an indexed snapshot:
+
+```scala
+val index   = graph.indexed(VertexOrder.by(Order[String])).toOption.get
+val weights = WeightedGraph.from(distances)
+val aligned = weights.indexedBy(index)
+// Either[TopologyMismatch[String],
+//        IndexedEdgeField[String, Double, index.type]]
+```
+
+The aligned field stores values in the snapshot's edge order. Its type retains
+that exact snapshot, so a coordinate from another snapshot cannot access it.
+
+## Gale numerical operators
+
+`graph4s-gale` is the optional numerical continuation for JVM and Scala.js:
+
+```scala
+import graph4s.gale.*
+
+val indexedWeights = weights.indexedBy(index).toOption.get
+
+val adjacency = indexedWeights.weightedAdjacency
+val laplacian = indexedWeights.combinatorialLaplacian
+val spectrum  = indexedWeights.vertexSpectrum(rank = index.vertexCount)
+```
+
+It provides topology and weighted adjacency, incidence matrices, degree and
+strength signals, combinatorial and normalized Laplacians, spectra, spectral
+embeddings, and explicit spectral feature similarities. Matrices and solver
+results expose Gale types directly; graph4s does not introduce a second linear
+algebra abstraction.
+
+Numerical row and column coordinates remain owned by `IndexedGraph` or
+`IndexedDigraph`. Derived operators, spectra, embeddings, and feature sets
+retain their exact snapshot type. Reindexing means constructing another
+validated snapshot with a different `VertexOrder`, then explicitly aligning the
+total edge or arc field to it.
+
+Feature similarities compare ordered labels with each snapshot's `Hash`
+equality. If two snapshots contain the same labels in a different order,
+`alignTo` returns a feature set in the target snapshot's row order. A missing or
+incompatible label produces `GraphSimilarityError.BasisMismatch`.
 
 ## Cats integration
 
@@ -281,10 +325,13 @@ semantics and will use explicit operations rather than a misleading `map`.
 | `graph4s-indexed` | Graph-scoped IDs, CSR, and CSC |
 | `graph4s-data` | Partial and total fields, topology checks, and weighted graphs |
 | `graph4s-algorithms` | Traversal, paths, components, SCCs, and graph-property evidence |
+| `graph4s-gale` | Optional Gale-backed sparse operators, spectra, embeddings, and similarities |
 | `graph4s-laws` | ScalaCheck generators and Discipline rule sets |
 
-All current modules cross-build for the JVM, Scala.js, and Scala Native. The
-pure kernel depends on Cats and cats-collections, not Cats Effect.
+The core, expression, indexed, data, algorithms, and laws modules cross-build
+for the JVM, Scala.js, and Scala Native. `graph4s-gale` targets the JVM and
+Scala.js, matching Gale's supported platforms. The pure kernel depends on Cats
+and cats-collections, not Cats Effect or Gale.
 
 ## Build from source
 
@@ -295,6 +342,13 @@ git clone https://github.com/canardlapin/graph4s.git
 cd graph4s
 sbt compileAll
 sbt testAll
+```
+
+Gale is currently consumed from an immutable GitHub source revision. For
+coordinated development against a sibling checkout:
+
+```bash
+sbt -Dgraph4s.gale.build=../gale galeJVM/test galeJS/test
 ```
 
 To check formatting:
@@ -310,10 +364,11 @@ algorithms across the supported platforms.
 ## Scope
 
 The current foundation intentionally defers multigraphs, loops, hypergraphs,
-weighted algorithms, bipartite and tree evidence, quotient/relabeling reports,
-morphisms, lazy views, streaming codecs, and interoperability adapters. These
-structures have different laws or need explicit semantic choices; they will
-not be hidden behind configuration parameters on `Graph[V]`.
+weighted traversal algorithms, bipartite and tree evidence,
+quotient/relabeling reports, morphisms, lazy views, streaming codecs, and
+interoperability adapters. These structures have different laws or need
+explicit semantic choices; they will not be hidden behind configuration
+parameters on `Graph[V]`.
 
 See [the design review](docs/design-review.md) for architectural decisions,
 implemented scope, and deferred work.

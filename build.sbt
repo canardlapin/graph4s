@@ -1,12 +1,23 @@
 import org.typelevel.sbt.gha.JavaSpec
 
-val Scala3           = "3.3.8"
+val Scala3           = "3.7.4"
 val catsV            = "2.13.0"
 val catsCollectionsV = "0.9.10"
 val munitV           = "1.3.4"
 val munitCheckV      = "1.3.0"
 val disciplineMunitV = "2.0.0"
 val scalaCheckV      = "1.19.0"
+
+// Gale is not yet published. Ordinary builds consume an immutable source
+// revision; coordinated development can opt into a sibling checkout.
+lazy val galeRevision = "83cac90a678d1b8a31c590e0c1b8fc8bf3427161"
+lazy val galeBuild =
+  sys.props
+    .get("graph4s.gale.build")
+    .map(path => file(path).getCanonicalFile.toURI)
+    .getOrElse(uri(s"https://github.com/canardlapin/gale.git#$galeRevision"))
+lazy val galeCoreJVM = ProjectRef(galeBuild, "coreJVM")
+lazy val galeCoreJS  = ProjectRef(galeBuild, "coreJS")
 
 ThisBuild / tlBaseVersion    := "0.1"
 ThisBuild / organization     := "io.github.canardlapin"
@@ -26,6 +37,10 @@ ThisBuild / githubWorkflowJavaVersions := Seq(
 )
 
 lazy val commonSettings = Seq(
+  // Scala 3.7/Scala.js emits this scala.caps namespace warning even though
+  // dependency resolution selects one Scala standard library.
+  scalacOptions +=
+    "-Wconf:msg=package scala contains object and package with same name.*caps:silent",
   libraryDependencies ++= Seq(
     "org.scalameta" %%% "munit"            % munitV      % Test,
     "org.scalameta" %%% "munit-scalacheck" % munitCheckV % Test
@@ -34,7 +49,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val root = tlCrossRootProject
-  .aggregate(core, expr, indexed, data, algorithms, laws)
+  .aggregate(core, expr, indexed, data, algorithms, gale, laws)
 
 lazy val core = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
@@ -65,7 +80,7 @@ lazy val indexed = crossProject(JVMPlatform, JSPlatform, NativePlatform)
 lazy val data = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
   .in(file("data"))
-  .dependsOn(core)
+  .dependsOn(core, indexed)
   .settings(commonSettings)
   .settings(name := "graph4s-data")
 
@@ -75,6 +90,17 @@ lazy val algorithms = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .dependsOn(core, indexed, data)
   .settings(commonSettings)
   .settings(name := "graph4s-algorithms")
+
+lazy val gale = crossProject(JVMPlatform, JSPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("gale"))
+  .dependsOn(indexed, data, algorithms % "test->compile")
+  .settings(commonSettings)
+  .settings(
+    name := "graph4s-gale"
+  )
+  .jvmConfigure(_.dependsOn(galeCoreJVM))
+  .jsConfigure(_.dependsOn(galeCoreJS))
 
 lazy val laws = crossProject(JVMPlatform, JSPlatform, NativePlatform)
   .crossType(CrossType.Pure)
@@ -93,14 +119,20 @@ lazy val laws = crossProject(JVMPlatform, JSPlatform, NativePlatform)
 
 addCommandAlias(
   "compileAll",
-  List("core", "expr", "indexed", "data", "algorithms", "laws")
-    .flatMap(module => List("JVM", "JS", "Native").map(platform => s"$module$platform/compile"))
-    .mkString(";", ";", "")
+  (
+    List("core", "expr", "indexed", "data", "algorithms", "laws")
+      .flatMap(module =>
+        List("JVM", "JS", "Native").map(platform => s"$module$platform/compile")
+      ) ++
+      List("galeJVM/compile", "galeJS/compile")
+  ).mkString(";", ";", "")
 )
 
 addCommandAlias(
   "testAll",
-  List("core", "expr", "indexed", "data", "algorithms", "laws")
-    .flatMap(module => List("JVM", "JS", "Native").map(platform => s"$module$platform/test"))
-    .mkString(";", ";", "")
+  (
+    List("core", "expr", "indexed", "data", "algorithms", "laws")
+      .flatMap(module => List("JVM", "JS", "Native").map(platform => s"$module$platform/test")) ++
+      List("galeJVM/test", "galeJS/test")
+  ).mkString(";", ";", "")
 )

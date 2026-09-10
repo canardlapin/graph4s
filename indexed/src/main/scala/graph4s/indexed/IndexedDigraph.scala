@@ -15,7 +15,8 @@ final class IndexedDigraph[V] private (
     private val inOffsets: Array[Int],
     private val inSources: Array[Int],
     private val numberOfArcs: Int
-)(using val vertexHash: Hash[V]):
+)(using val vertexHash: Hash[V])
+    extends IndexedVertexDomain[V]:
 
   opaque type Vertex = Int
   opaque type Arc = Int
@@ -92,8 +93,13 @@ final class IndexedDigraph[V] private (
     inOffsets(vertex + 1) - inOffsets(vertex)
 
   def endpoints(arc: Arc): (Vertex, Vertex) =
-    val (sources, targets) = arcIndex
-    (sources(arc), targets(arc))
+    (source(arc), target(arc))
+
+  def source(arc: Arc): Vertex =
+    arcIndex._1(arc)
+
+  def target(arc: Arc): Vertex =
+    arcIndex._2(arc)
 
   def arcOrdinal(arc: Arc): Int =
     arc

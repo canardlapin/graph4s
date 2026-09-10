@@ -4,10 +4,15 @@ import cats.Eq
 import cats.collections.HashMap
 import cats.data.ValidatedNec
 import cats.syntax.all.*
-import graph4s.{Graph, InducedSubgraph, VertexDomain}
+import graph4s.{Digraph, Graph, InducedSubgraph, InducedSubgraphDigraph, VertexDomain}
 
 enum VertexDataError[V]:
   case UnknownVertex(vertex: V)
+
+final case class VertexTopologyMismatch[V](
+    expected: VertexDomain[V],
+    actual: VertexDomain[V]
+)
 
 final class VertexMap[V, +A] private[graph4s] (
     val topology: VertexDomain[V],
@@ -85,7 +90,7 @@ object VertexMap:
         ).valid
 
 final class VertexField[V, +A] private (
-    val topology: Graph[V],
+    val topology: VertexDomain[V],
     private val values: HashMap[V, A]
 ):
   def get(vertex: V): Option[A] =
@@ -103,7 +108,7 @@ final class VertexField[V, +A] private (
     )
 
 object VertexField:
-  def total[V, A](graph: Graph[V])(value: V => A): VertexField[V, A] =
+  def total[V, A](graph: VertexDomain[V])(value: V => A): VertexField[V, A] =
     new VertexField(
       graph,
       HashMap.fromIterableOnce(
@@ -114,14 +119,33 @@ object VertexField:
   def restrict[V, A](
       induced: InducedSubgraph[V],
       field: VertexField[V, A]
-  ): Either[TopologyMismatch[V], VertexField[V, A]] =
-    if Eq[Graph[V]].eqv(induced.source, field.topology) then
-      Right(
-        new VertexField(
-          induced.graph,
-          HashMap.fromIterableOnce(
-            induced.graph.vertices.iterator.flatMap(vertex => field.get(vertex).map((vertex, _)))
-          )(using induced.graph.vertexHash)
+  ): Either[VertexTopologyMismatch[V], VertexField[V, A]] =
+    field.topology match
+      case source: Graph[V] if Eq[Graph[V]].eqv(induced.source, source) =>
+        Right(
+          new VertexField(
+            induced.graph,
+            HashMap.fromIterableOnce(
+              induced.graph.vertices.iterator.flatMap(vertex => field.get(vertex).map((vertex, _)))
+            )(using induced.graph.vertexHash)
+          )
         )
-      )
-    else Left(TopologyMismatch(induced.source, field.topology))
+      case _ =>
+        Left(VertexTopologyMismatch(induced.source, field.topology))
+
+  def restrict[V, A](
+      induced: InducedSubgraphDigraph[V],
+      field: VertexField[V, A]
+  ): Either[VertexTopologyMismatch[V], VertexField[V, A]] =
+    field.topology match
+      case source: Digraph[V] if Eq[Digraph[V]].eqv(induced.source, source) =>
+        Right(
+          new VertexField(
+            induced.graph,
+            HashMap.fromIterableOnce(
+              induced.graph.vertices.iterator.flatMap(vertex => field.get(vertex).map((vertex, _)))
+            )(using induced.graph.vertexHash)
+          )
+        )
+      case _ =>
+        Left(VertexTopologyMismatch(induced.source, field.topology))

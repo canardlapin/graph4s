@@ -45,30 +45,30 @@ object ExpressionGenerators:
   given [A: Arbitrary]: Arbitrary[DigraphExpr[A]] =
     Arbitrary(digraphExpr[A])
 
-  given [A: Eq]: Eq[GraphExpr[A]] =
-    Eq.instance {
-      case (GraphExpr.Empty, GraphExpr.Empty) =>
-        true
-      case (GraphExpr.Vertex(left), GraphExpr.Vertex(right)) =>
-        Eq[A].eqv(left, right)
-      case (GraphExpr.Overlay(ll, lr), GraphExpr.Overlay(rl, rr)) =>
-        Eq[GraphExpr[A]].eqv(ll, rl) && Eq[GraphExpr[A]].eqv(lr, rr)
-      case (GraphExpr.Join(ll, lr), GraphExpr.Join(rl, rr)) =>
-        Eq[GraphExpr[A]].eqv(ll, rl) && Eq[GraphExpr[A]].eqv(lr, rr)
-      case _ =>
-        false
-    }
+  given [A: Eq]: Eq[GraphExpr[A]] with
+    def eqv(left: GraphExpr[A], right: GraphExpr[A]): Boolean =
+      (left, right) match
+        case (GraphExpr.Empty, GraphExpr.Empty) =>
+          true
+        case (GraphExpr.Vertex(left), GraphExpr.Vertex(right)) =>
+          Eq[A].eqv(left, right)
+        case (GraphExpr.Overlay(ll, lr), GraphExpr.Overlay(rl, rr)) =>
+          eqv(ll, rl) && eqv(lr, rr)
+        case (GraphExpr.Join(ll, lr), GraphExpr.Join(rl, rr)) =>
+          eqv(ll, rl) && eqv(lr, rr)
+        case _ =>
+          false
 
-  given [A: Eq]: Eq[DigraphExpr[A]] =
-    Eq.instance {
-      case (DigraphExpr.Empty, DigraphExpr.Empty) =>
-        true
-      case (DigraphExpr.Vertex(left), DigraphExpr.Vertex(right)) =>
-        Eq[A].eqv(left, right)
-      case (DigraphExpr.Overlay(ll, lr), DigraphExpr.Overlay(rl, rr)) =>
-        Eq[DigraphExpr[A]].eqv(ll, rl) && Eq[DigraphExpr[A]].eqv(lr, rr)
-      case (DigraphExpr.Connect(lf, lt), DigraphExpr.Connect(rf, rt)) =>
-        Eq[DigraphExpr[A]].eqv(lf, rf) && Eq[DigraphExpr[A]].eqv(lt, rt)
-      case _ =>
-        false
-    }
+  given [A: Eq]: Eq[DigraphExpr[A]] with
+    def eqv(left: DigraphExpr[A], right: DigraphExpr[A]): Boolean =
+      (left, right) match
+        case (DigraphExpr.Empty, DigraphExpr.Empty) =>
+          true
+        case (DigraphExpr.Vertex(left), DigraphExpr.Vertex(right)) =>
+          Eq[A].eqv(left, right)
+        case (DigraphExpr.Overlay(ll, lr), DigraphExpr.Overlay(rl, rr)) =>
+          eqv(ll, rl) && eqv(lr, rr)
+        case (DigraphExpr.Connect(lf, lt), DigraphExpr.Connect(rf, rt)) =>
+          eqv(lf, rf) && eqv(lt, rt)
+        case _ =>
+          false

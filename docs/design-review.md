@@ -122,7 +122,11 @@ Implemented now:
   Cartesian product, line graph, transpose, underlying graph, and bidirection;
 - expression algebras and named path/cycle/clique/star/biclique constructors;
 - validated deterministic CSR/CSC snapshots with graph-scoped IDs;
-- partial/total vertex and edge data and weighted undirected graphs;
+- partial/total vertex, edge, and arc data, weighted graphs and digraphs, and
+  snapshot-aligned edge/arc fields;
+- optional Gale-backed adjacency, incidence, degree/strength, Laplacian,
+  spectrum, embedding, and similarity operations that retain the exact indexed
+  snapshot in their result types;
 - BFS, DFS, shortest paths, weak/strong components, topological sorting,
   connected and DAG evidence;
 - structural, algebraic, cross-representation, and compile-time ID tests.
@@ -130,9 +134,9 @@ Implemented now:
 Deferred behind separate contracts:
 
 - injective relabeling, quotient reports, and contraction maps;
-- directed fields and weighted digraphs;
 - bipartite, tree, forest, and strongly-connected evidence wrappers;
-- spanning forests, articulation points, bridges, and weighted algorithms;
+- spanning forests, articulation points, bridges, and weighted traversal
+  algorithms;
 - morphisms and lazy views;
 - FS2, Circe, GraphML, JGraphT, and Graph for Scala adapters;
 - canonical digests.

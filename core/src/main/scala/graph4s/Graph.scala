@@ -115,9 +115,10 @@ final class Graph[V] private[graph4s] (
   private def induced(selected: VertexSet[V]): InducedSubgraph[V] =
     val keptEdges =
       edges.iterator.filter(edge => selected.contains(edge.first) && selected.contains(edge.second))
-    val result = Graph.materialize(selected.iterator, keptEdges.map(e => Link(e.first, e.second)))(
-      using vertexHash
-    )
+    val result =
+      Graph.materialize(selected.iterator, keptEdges.map(e => Link(e.first, e.second)))(using
+        vertexHash
+      )
     InducedSubgraph(this, result, vertexSet.diff(selected))
 
   def spanningBy(predicate: Edge[V] => Boolean): Graph[V] =

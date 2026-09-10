@@ -17,7 +17,8 @@ final class IndexedGraph[V] private (
     private val offsets: Array[Int],
     private val neighborData: Array[Int],
     private val numberOfEdges: Int
-)(using val vertexHash: Hash[V]):
+)(using val vertexHash: Hash[V])
+    extends IndexedVertexDomain[V]:
 
   opaque type Vertex = Int
   opaque type Edge = Int
@@ -83,8 +84,13 @@ final class IndexedGraph[V] private (
     offsets(vertex + 1) - offsets(vertex)
 
   def endpoints(edge: Edge): (Vertex, Vertex) =
-    val (sources, targets) = edgeIndex
-    (sources(edge), targets(edge))
+    (first(edge), second(edge))
+
+  def first(edge: Edge): Vertex =
+    edgeIndex._1(edge)
+
+  def second(edge: Edge): Vertex =
+    edgeIndex._2(edge)
 
   def edgeOrdinal(edge: Edge): Int =
     edge
