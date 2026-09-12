@@ -10,7 +10,7 @@ val scalaCheckV      = "1.19.0"
 
 // Gale is not yet published. Ordinary builds consume an immutable source
 // revision; coordinated development can opt into a sibling checkout.
-lazy val galeRevision = "83cac90a678d1b8a31c590e0c1b8fc8bf3427161"
+lazy val galeRevision = "099832ff15c8a4a8fcf3398c7b779fb4bbc12434"
 lazy val galeBuild =
   sys.props
     .get("graph4s.gale.build")
