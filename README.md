@@ -388,3 +388,18 @@ ranking remain with callers. Vertex lookup honors the topology's Cats `Hash`.
 Choice order preserves caller adjacency order; equal total cost is resolved by
 first strict improvement during traversal, without a lexicographic promise.
 Simple-path enumeration can be exponential and is intended for bounded graphs.
+
+### Prepared nonnegative distances
+
+`PreparedShortestPaths.create(index)(edgeCost)` snapshots finite nonnegative
+costs once over an `IndexedGraph`. Its `distancesFrom` and the result's
+`distanceTo` require that exact indexed graph's vertex IDs. Each source query
+owns its scratch arrays; earlier results remain immutable. Zero costs and
+empty/disconnected graphs are valid. Invalid edge costs return a typed
+`ShortestPathBuildError`.
+
+A result of `None` means unreachable; `Some(Double.PositiveInfinity)` means
+reachable but no finite path cost is representable in `Double`. The generic
+algorithm does not impose triangle inequalities or application-specific rules
+such as rejecting all-zero costs. Existing `DirectedRoutes.shortest` shares
+the primitive engine and retains its finite-route and caller edge-order policy.
