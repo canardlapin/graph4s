@@ -79,6 +79,10 @@ class PreparedShortestPathsSuite extends munit.FunSuite:
     assertEquals(result.distanceTo(graph.vertex(2).get), Some(Double.PositiveInfinity))
     assertEquals(result.distanceTo(graph.vertex(3).get), Some(Double.PositiveInfinity))
     assertEquals(result.distanceTo(graph.vertex(4).get), None)
+    assert(result.isReachable(graph.vertex(2).get))
+    assert(!result.isReachable(graph.vertex(4).get))
+    assert(result.distanceOrInfinity(graph.vertex(2).get).isPosInfinity)
+    assert(result.distanceOrInfinity(graph.vertex(4).get).isPosInfinity)
     val alternative = indexed(Vector(0, 1, 2), Vector((0, 1), (1, 2), (0, 2)))
     val better = ok(PreparedShortestPaths.create(alternative): edge =>
       val (a, b) = alternative.endpoints(edge)

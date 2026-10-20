@@ -22,6 +22,11 @@ final class SingleSourceDistances[V, G <: IndexedGraph[V]] private[algorithms] (
     val i = graph.ordinal(vertex)
     Option.when(reachable(i))(costs(i))
 
+  def isReachable(vertex: graph.Vertex): Boolean = reachable(graph.ordinal(vertex))
+
+  /** Primitive read for callers whose policy represents both no path and overflow as +Infinity. */
+  def distanceOrInfinity(vertex: graph.Vertex): Double = costs(graph.ordinal(vertex))
+
 /** An immutable nonnegative cost snapshot, prepared once for many source queries. Each query owns
   * its scratch arrays; previous results remain immutable.
   */
