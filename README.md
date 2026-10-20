@@ -376,3 +376,15 @@ implemented scope, and deferred work.
 ## License
 
 Licensed under the [Apache License 2.0](LICENSE).
+
+## Directed weighted routes
+
+`graph4s.algorithms.DirectedRoutes` searches an existing `WeightedDigraph` whose
+arc values are vectors of `RouteChoice` payloads. This retains parallel choices
+without introducing a second graph representation. `shortest` uses nonnegative
+finite costs; `allSimplePaths` enumerates simple paths, including distinct
+parallel choices. Application-specific inverse admission, penalties and result
+ranking remain with callers. Vertex lookup honors the topology's Cats `Hash`.
+Choice order preserves caller adjacency order; equal total cost is resolved by
+first strict improvement during traversal, without a lexicographic promise.
+Simple-path enumeration can be exponential and is intended for bounded graphs.
